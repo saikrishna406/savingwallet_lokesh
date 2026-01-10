@@ -187,9 +187,14 @@ export default function VerifyCardSection() {
 
             {/* Header */}
             <header className="absolute left-0 right-0 top-0 flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 z-10">
-                <span className="text-xs tracking-[0.14em] uppercase text-zinc-400">
-                    NOVA
-                </span>
+                <Button
+                    variant="ghost"
+                    className="text-xs tracking-[0.14em] uppercase text-zinc-400 hover:text-zinc-200 hover:bg-transparent px-0"
+                    onClick={() => router.back()}
+                >
+                    Back
+                </Button>
+
                 <Button
                     variant="outline"
                     className="h-9 rounded-lg border-zinc-800 bg-zinc-900 text-zinc-50 hover:bg-zinc-900/80"

@@ -316,6 +316,16 @@ export default function RegisterCardSection() {
                             <Button
                                 variant="outline"
                                 className="w-full h-10 rounded-lg border-zinc-800 bg-zinc-950 text-zinc-50 hover:bg-zinc-900/80 transition-colors"
+                                type="button"
+                                onClick={async () => {
+                                    const { supabase } = await import('@/lib/supabase');
+                                    await supabase.auth.signInWithOAuth({
+                                        provider: 'google',
+                                        options: {
+                                            redirectTo: `${window.location.origin}/dashboard`,
+                                        },
+                                    });
+                                }}
                             >
                                 <Chrome className="h-4 w-4 mr-2" />
                                 Google
