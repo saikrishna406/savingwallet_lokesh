@@ -1,4 +1,11 @@
 import { Module } from '@nestjs/common';
+import { GoalsController } from './goals.controller';
+import { GoalsService } from './goals.service';
+import { SupabaseModule } from '../../supabase/supabase.module';
 
-@Module({})
+@Module({
+    imports: [SupabaseModule],
+    controllers: [GoalsController],
+    providers: [GoalsService],
+})
 export class GoalsModule { }

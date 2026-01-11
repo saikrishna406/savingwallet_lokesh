@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -14,23 +12,76 @@ import { Input } from "@/components/ui/input"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+// import { useRouter } from "next/navigation"
+import { GoalsService } from "@/services/goals.service"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-export function CreateGoalDialog() {
+interface CreateGoalDialogProps {
+    onGoalCreated?: () => void
+}
+
+export function CreateGoalDialog({ onGoalCreated }: CreateGoalDialogProps) {
     const [open, setOpen] = useState(false)
-    const router = useRouter()
+    // const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
+    const [formData, setFormData] = useState({
+        title: "",
+        target_amount: "",
+        current_amount: "0",
+        target_date: "",
+        category: "General"
+    })
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.id]: e.target.value })
+    }
+
+    const handleCategoryChange = (value: string) => {
+        setFormData({ ...formData, category: value })
+    }
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
-        // Simulate API
-        setTimeout(() => {
-            setIsLoading(false)
+
+        try {
+            const token = localStorage.getItem("auth_token")
+            if (!token) {
+                alert("You are not logged in")
+                return
+            }
+
+            await GoalsService.createGoal(token, {
+                title: formData.title,
+                target_amount: parseFloat(formData.target_amount),
+                current_amount: parseFloat(formData.current_amount || '0'),
+                target_date: formData.target_date,
+                category: formData.category
+            })
+
             setOpen(false)
-            alert("Goal created successfully!")
-            router.refresh()
-        }, 1000)
+            setFormData({
+                title: "",
+                target_amount: "",
+                current_amount: "0",
+                target_date: "",
+                category: "General"
+            })
+
+            if (onGoalCreated) {
+                onGoalCreated()
+            } else {
+                // Fallback if not passed
+                window.location.reload()
+            }
+
+        } catch (error: any) {
+            console.error(error)
+            alert(error.message || "Failed to create goal")
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -49,22 +100,45 @@ export function CreateGoalDialog() {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                        <label htmlFor="name" className="text-sm font-medium">
+                        <Label htmlFor="title" className="text-sm font-medium">
                             Goal Name
-                        </label>
-                        <Input id="name" placeholder="e.g. New iPhone" required />
+                        </Label>
+                        <Input id="title" placeholder="e.g. New iPhone" required value={formData.title} onChange={handleChange} />
                     </div>
                     <div className="grid gap-2">
-                        <label htmlFor="amount" className="text-sm font-medium">
+                        <Label htmlFor="target_amount" className="text-sm font-medium">
                             Target Amount (₹)
-                        </label>
-                        <Input id="amount" type="number" placeholder="50000" required />
+                        </Label>
+                        <Input id="target_amount" type="number" placeholder="50000" required value={formData.target_amount} onChange={handleChange} />
                     </div>
                     <div className="grid gap-2">
-                        <label htmlFor="date" className="text-sm font-medium">
+                        <Label htmlFor="current_amount" className="text-sm font-medium">
+                            Initial Savings (Optional)
+                        </Label>
+                        <Input id="current_amount" type="number" placeholder="0" value={formData.current_amount} onChange={handleChange} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="target_date" className="text-sm font-medium">
                             Target Date
-                        </label>
-                        <Input id="date" type="date" required />
+                        </Label>
+                        <Input id="target_date" type="date" required value={formData.target_date} onChange={handleChange} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="category" className="text-sm font-medium">
+                            Category
+                        </Label>
+                        <Select onValueChange={handleCategoryChange} defaultValue="General">
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="General">General</SelectItem>
+                                <SelectItem value="Travel">Travel</SelectItem>
+                                <SelectItem value="Gadgets">Gadgets</SelectItem>
+                                <SelectItem value="Vehicle">Vehicle</SelectItem>
+                                <SelectItem value="Security">Security</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <DialogFooter>
                         <Button type="submit" disabled={isLoading} className="bg-gray-900 text-white hover:bg-gray-800 border-0">{isLoading ? "Creating..." : "Create Goal"}</Button>
