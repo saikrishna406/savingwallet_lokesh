@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion"
@@ -11,10 +12,17 @@ import {
     faSearch,
     faTrophy,
     faMoneyBillWave,
-    faBullseye
+    faBullseye,
+    faSpinner,
+    faHistory,
+    faArrowUp,
+    faArrowDown,
+    faExchangeAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { WalletService } from "@/services/wallet.service"
+import { GoalsService } from "@/services/goals.service"
 
 const container = {
     hidden: { opacity: 0 },
@@ -32,14 +40,88 @@ const item = {
 }
 
 export default function ActivityPage() {
-    const activities = [
-        { id: 1, title: "Goal Reached!", description: "You hit your target for 'Emergency Fund'", time: "2 hours ago", icon: faTrophy, color: "text-yellow-600 bg-yellow-50", amount: null },
-        { id: 2, title: "Money Added", description: "Deposit via UPI", time: "5 hours ago", icon: faMoneyBillWave, color: "text-green-600 bg-green-50", amount: "+₹5,000" },
-        { id: 3, title: "Goal Created", description: "New goal 'Trip to Goa' started", time: "Yesterday", icon: faBullseye, color: "text-blue-600 bg-blue-50", amount: null },
-        { id: 4, title: "Weekly Auto-save", description: "Automatic deduction for savings", time: "Yesterday", icon: faClock, color: "text-purple-600 bg-purple-50", amount: "-₹500" },
-        { id: 5, title: "Withdrawal", description: "Transfer to bank account", time: "Apr 5", icon: faMoneyBillWave, color: "text-gray-600 bg-gray-50", amount: "-₹1,000" },
-        { id: 6, title: "Milestone Unlocked", description: "Saved ₹1,00,000 total lifetime", time: "Apr 1", icon: faTrophy, color: "text-orange-600 bg-orange-50", amount: null },
-    ]
+    const [activities, setActivities] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        fetchActivities()
+    }, [])
+
+    const fetchActivities = async () => {
+        try {
+            setIsLoading(true)
+            const token = localStorage.getItem('auth_token')
+
+            if (!token) {
+                setError('Please login to view activity')
+                return
+            }
+
+            // Fetch wallet transactions and goals
+            const [walletData, goalsData] = await Promise.all([
+                WalletService.getWallet(token),
+                GoalsService.getGoals(token)
+            ])
+
+            // Combine transactions and goals into activities
+            const transactionActivities = (walletData.transactions || []).map((tx: any) => ({
+                id: `tx-${tx.id}`,
+                title: tx.type === 'deposit' || tx.type === 'credit' ? 'Money Added' : 'Withdrawal',
+                description: tx.description || tx.type,
+                time: new Date(tx.created_at).toLocaleString(),
+                icon: tx.type === 'deposit' || tx.type === 'credit' ? faArrowDown : faArrowUp,
+                color: tx.type === 'deposit' || tx.type === 'credit' ? 'text-green-600 bg-green-50' : 'text-gray-600 bg-gray-50',
+                amount: `${tx.type === 'deposit' || tx.type === 'credit' ? '+' : '-'}₹${tx.amount.toLocaleString()}`,
+                timestamp: new Date(tx.created_at).getTime()
+            }))
+
+            const goalActivities = (goalsData || []).map((goal: any) => ({
+                id: `goal-${goal.id}`,
+                title: 'Goal Created',
+                description: `New goal '${goal.name}' started`,
+                time: new Date(goal.created_at).toLocaleString(),
+                icon: faBullseye,
+                color: 'text-blue-600 bg-blue-50',
+                amount: null,
+                timestamp: new Date(goal.created_at).getTime()
+            }))
+
+            // Combine and sort by timestamp (newest first)
+            const allActivities = [...transactionActivities, ...goalActivities]
+                .sort((a, b) => b.timestamp - a.timestamp)
+
+            setActivities(allActivities)
+            setError(null)
+        } catch (err: any) {
+            console.error('Failed to fetch activities:', err)
+            setError(err.message || 'Failed to load activities')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <FontAwesomeIcon icon={faSpinner} className="text-4xl text-gray-400 animate-spin mb-4" />
+                    <p className="text-gray-600">Loading activities...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <Button onClick={fetchActivities}>Retry</Button>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <motion.div
@@ -66,37 +148,43 @@ export default function ActivityPage() {
             </motion.div>
 
             <div className="space-y-4">
-                {activities.map((activity, i) => (
-                    <motion.div key={activity.id} variants={item}>
-                        <Card className="border border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm transition-all">
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${activity.color}`}>
-                                    <FontAwesomeIcon icon={activity.icon} className="h-4 w-4" />
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="font-semibold text-gray-900 truncate">{activity.title}</h4>
-                                    <p className="text-sm text-gray-500 truncate">{activity.description}</p>
-                                </div>
-
-                                <div className="text-right shrink-0">
-                                    {activity.amount && (
-                                        <p className={`font-semibold mb-1 ${activity.amount.startsWith('+') ? 'text-green-600' : 'text-gray-900'
-                                            }`}>{activity.amount}</p>
-                                    )}
-                                    <p className="text-xs text-gray-400">{activity.time}</p>
-                                </div>
+                {activities.length === 0 ? (
+                    <motion.div variants={item}>
+                        <Card className="border border-gray-100 bg-white">
+                            <CardContent className="p-12 text-center">
+                                <FontAwesomeIcon icon={faHistory} className="text-5xl text-gray-300 mb-4" />
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Activity Yet</h3>
+                                <p className="text-gray-500">Your financial activities will appear here</p>
                             </CardContent>
                         </Card>
                     </motion.div>
-                ))}
-            </div>
+                ) : (
+                    activities.map((activity) => (
+                        <motion.div key={activity.id} variants={item}>
+                            <Card className="border border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm transition-all">
+                                <CardContent className="p-4 flex items-center gap-4">
+                                    <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${activity.color}`}>
+                                        <FontAwesomeIcon icon={activity.icon} className="h-4 w-4" />
+                                    </div>
 
-            <motion.div variants={item} className="text-center pt-4">
-                <Button variant="ghost" className="text-gray-500 hover:text-gray-900">
-                    Load More History
-                </Button>
-            </motion.div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-semibold text-gray-900 truncate">{activity.title}</h4>
+                                        <p className="text-sm text-gray-500 truncate">{activity.description}</p>
+                                    </div>
+
+                                    <div className="text-right shrink-0">
+                                        {activity.amount && (
+                                            <p className={`font-semibold mb-1 ${activity.amount.startsWith('+') ? 'text-green-600' : 'text-gray-900'
+                                                }`}>{activity.amount}</p>
+                                        )}
+                                        <p className="text-xs text-gray-400">{activity.time}</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    ))
+                )}
+            </div>
         </motion.div>
     )
 }

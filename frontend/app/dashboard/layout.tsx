@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
+import { Toaster } from "@/components/ui/toaster"
 
 export default function DashboardLayout({
     children,
@@ -28,6 +29,9 @@ export default function DashboardLayout({
                     {children}
                 </div>
             </div>
+
+            {/* Toast Notifications */}
+            <Toaster />
         </div>
     )
 }

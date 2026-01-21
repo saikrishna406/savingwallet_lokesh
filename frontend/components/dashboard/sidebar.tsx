@@ -98,12 +98,7 @@ export function Sidebar({ className }: { className?: string }) {
         },
     ];
 
-    const nestedNav: MenuItem[] = [
-        { name: "Cards", href: "/dashboard/billing/cards" },
-        { name: "Checkouts", href: "/dashboard/billing/checkouts" },
-        { name: "Payments", href: "/dashboard/billing/payments" },
-        { name: "Get paid", href: "/dashboard/billing/getpaid" },
-    ];
+
 
     const profileRef = useRef<HTMLButtonElement | null>(null);
     const [isProfileActive, setIsProfileActive] = useState(false);
@@ -225,12 +220,7 @@ export function Sidebar({ className }: { className?: string }) {
                             </li>
                         ))}
 
-                        <li>
-                            <Menu items={nestedNav}>
-                                <FontAwesomeIcon icon={faCreditCard} className="w-5 h-5 text-gray-500" />
-                                Billing
-                            </Menu>
-                        </li>
+
                     </ul>
 
                     <div className="pt-2 mt-2 border-t">

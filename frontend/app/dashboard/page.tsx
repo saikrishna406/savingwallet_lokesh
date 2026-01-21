@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useEffect } from "react"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -18,10 +20,17 @@ import {
     faWallet,
     faFire,
     faBullseye,
-    faCalendar
+    faCalendar,
+    faSpinner,
+    faCheckCircle,
+    faExclamationTriangle,
+    faInfoCircle
 } from '@fortawesome/free-solid-svg-icons'
 import { CreateGoalDialog } from "@/components/dashboard/create-goal-dialog"
 import { PaymentModal } from "@/components/dashboard/payment-modal"
+import { GoalsService } from "@/services/goals.service"
+import { WalletService } from "@/services/wallet.service"
+import { UpiService } from "@/services/upi.service"
 
 const container = {
     hidden: { opacity: 0 },
@@ -39,8 +48,79 @@ const item = {
 }
 
 export default function DashboardPage() {
+    const [goals, setGoals] = useState<any[]>([])
+    const [wallet, setWallet] = useState<any>(null)
+    const [userProfile, setUserProfile] = useState<any>(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        fetchDashboardData()
+    }, [])
+
+    const fetchDashboardData = async () => {
+        try {
+            setIsLoading(true)
+            const token = localStorage.getItem('auth_token')
+
+            if (!token) {
+                setError('Please login to view dashboard')
+                return
+            }
+
+            // Fetch goals, wallet, and user profile data in parallel
+            const [goalsData, walletData, profileData] = await Promise.all([
+                GoalsService.getGoals(token),
+                WalletService.getWallet(token),
+                UpiService.getProfile(token)
+            ])
+
+            setGoals(goalsData)
+            setWallet(walletData)
+            setUserProfile(profileData)
+            setError(null)
+        } catch (err: any) {
+            console.error('Failed to fetch dashboard data:', err)
+            setError(err.message || 'Failed to load dashboard data')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    // Calculate stats from real data
+    const totalSavings = goals.reduce((sum, goal) => sum + (goal.current_amount || 0), 0)
+    const activeGoalsCount = goals.filter(goal => goal.status === 'active').length
+    const walletBalance = wallet?.balance || 0
+
+    // UPI integration status
+    const isUpiLinked = userProfile?.upi_id ? true : false
+    const isUpiVerified = userProfile?.upi_verified || false
+    const upiId = userProfile?.upi_id || ''
+
     const currentHour = new Date().getHours()
     const greeting = currentHour < 12 ? "Good Morning" : currentHour < 18 ? "Good Afternoon" : "Good Evening"
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <FontAwesomeIcon icon={faSpinner} className="text-4xl text-gray-400 animate-spin mb-4" />
+                    <p className="text-gray-600">Loading your dashboard...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <Button onClick={fetchDashboardData}>Retry</Button>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <motion.div
@@ -73,13 +153,48 @@ export default function DashboardPage() {
 
                 <Card className="border border-gray-100 bg-white">
                     <CardContent className="p-6">
-                        <h3 className="font-semibold text-gray-900 mb-2">Get Helpful Tips</h3>
-                        <p className="text-sm text-gray-600 mb-4">
-                            We have curated resources to help you get better at saving and managing money.
-                        </p>
-                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                            See Resources
-                        </Button>
+                        <div className="flex items-start justify-between mb-2">
+                            <h3 className="font-semibold text-gray-900">UPI Integration</h3>
+                            {isUpiLinked && isUpiVerified && (
+                                <FontAwesomeIcon icon={faCheckCircle} className="text-green-600 text-lg" />
+                            )}
+                            {isUpiLinked && !isUpiVerified && (
+                                <FontAwesomeIcon icon={faExclamationTriangle} className="text-yellow-600 text-lg" />
+                            )}
+                            {!isUpiLinked && (
+                                <FontAwesomeIcon icon={faInfoCircle} className="text-gray-400 text-lg" />
+                            )}
+                        </div>
+                        {isUpiLinked ? (
+                            <>
+                                <p className="text-sm text-gray-600 mb-2">
+                                    UPI ID: <span className="font-medium text-gray-900">{upiId}</span>
+                                </p>
+                                <div className="flex items-center gap-2 mb-4">
+                                    {isUpiVerified ? (
+                                        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                                            ✓ Verified
+                                        </span>
+                                    ) : (
+                                        <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">
+                                            ⚠ Pending Verification
+                                        </span>
+                                    )}
+                                </div>
+                                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                                    Manage UPI
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-sm text-gray-600 mb-4">
+                                    Link your UPI ID to enable seamless withdrawals and transactions.
+                                </p>
+                                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                                    Link UPI ID
+                                </Button>
+                            </>
+                        )}
                     </CardContent>
                 </Card>
             </motion.div>
@@ -91,10 +206,10 @@ export default function DashboardPage() {
                         <FontAwesomeIcon icon={faWallet} className="text-gray-400 text-sm" />
                         <p className="text-sm text-gray-600">Total Savings</p>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">₹12,450</p>
+                    <p className="text-2xl font-bold text-gray-900">₹{totalSavings.toLocaleString()}</p>
                     <div className="flex items-center gap-1 mt-1">
                         <FontAwesomeIcon icon={faChartLine} className="text-green-600 text-xs" />
-                        <span className="text-xs text-green-600">+20.1%</span>
+                        <span className="text-xs text-green-600">Active</span>
                     </div>
                 </div>
                 <div>
@@ -102,15 +217,15 @@ export default function DashboardPage() {
                         <FontAwesomeIcon icon={faBullseye} className="text-gray-400 text-sm" />
                         <p className="text-sm text-gray-600">Active Goals</p>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">3</p>
-                    <p className="text-xs text-gray-500 mt-1">2 on track</p>
+                    <p className="text-2xl font-bold text-gray-900">{activeGoalsCount}</p>
+                    <p className="text-xs text-gray-500 mt-1">{goals.length} total</p>
                 </div>
                 <div>
                     <div className="flex items-center gap-2 mb-1">
                         <FontAwesomeIcon icon={faWallet} className="text-gray-400 text-sm" />
                         <p className="text-sm text-gray-600">Wallet Balance</p>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">₹450</p>
+                    <p className="text-2xl font-bold text-gray-900">₹{walletBalance.toLocaleString()}</p>
                     <Button variant="link" className="h-auto p-0 text-xs mt-1">
                         Withdraw
                     </Button>
@@ -120,8 +235,8 @@ export default function DashboardPage() {
                         <FontAwesomeIcon icon={faFire} className="text-gray-400 text-sm" />
                         <p className="text-sm text-gray-600">Saving Streak</p>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">12 Days</p>
-                    <p className="text-xs text-gray-500 mt-1">Keep it up!</p>
+                    <p className="text-2xl font-bold text-gray-900">-- Days</p>
+                    <p className="text-xs text-gray-500 mt-1">Coming soon</p>
                 </div>
             </motion.div>
 

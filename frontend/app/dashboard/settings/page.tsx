@@ -14,6 +14,7 @@ import {
     faCreditCard,
     faSave
 } from '@fortawesome/free-solid-svg-icons'
+import UpiLinkCard from "@/components/dashboard/upi-link-card"
 
 const container = {
     hidden: { opacity: 0 },
@@ -79,6 +80,11 @@ export default function SettingsPage() {
                 </Card>
             </motion.div>
 
+            {/* UPI Payment Methods Section */}
+            <motion.div variants={item}>
+                <UpiLinkCard />
+            </motion.div>
+
             {/* Notifications Section */}
             <motion.div variants={item}>
                 <Card className="border border-gray-100 bg-white shadow-none">
@@ -130,6 +136,16 @@ export default function SettingsPage() {
                     <CardContent className="space-y-4">
                         <Button variant="outline" className="w-full sm:w-auto border-gray-200 text-black hover:bg-gray-50">Change Password</Button>
                         <Button variant="outline" className="w-full sm:w-auto border-gray-200 ml-0 sm:ml-4 mt-2 sm:mt-0 text-black hover:bg-gray-50">Enable 2FA</Button>
+                        <Button
+                            variant="destructive"
+                            className="w-full sm:w-auto ml-0 sm:ml-4 mt-2 sm:mt-0"
+                            onClick={() => {
+                                localStorage.removeItem('auth_token')
+                                window.location.href = '/auth/login'
+                            }}
+                        >
+                            Logout
+                        </Button>
                     </CardContent>
                 </Card>
             </motion.div>

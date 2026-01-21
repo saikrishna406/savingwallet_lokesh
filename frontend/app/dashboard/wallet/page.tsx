@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useEffect } from "react"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PaymentModal } from "@/components/dashboard/payment-modal"
@@ -13,8 +15,10 @@ import {
     faHistory,
     faMoneyBillWave,
     faExchangeAlt,
-    faUniversity
+    faUniversity,
+    faSpinner
 } from '@fortawesome/free-solid-svg-icons'
+import { WalletService } from "@/services/wallet.service"
 
 const container = {
     hidden: { opacity: 0 },
@@ -32,12 +36,59 @@ const item = {
 }
 
 export default function WalletPage() {
-    const transactions = [
-        { id: 1, type: "deposit", amount: 5000, date: "Today, 10:23 AM", description: "Added to wallet", status: "Success" },
-        { id: 2, type: "withdrawal", amount: 200, date: "Yesterday, 4:30 PM", description: "Coffee & Snacks", status: "Success" },
-        { id: 3, type: "transfer", amount: 1500, date: "Apr 8, 2025", description: "Transfer to Savings", status: "Completed" },
-        { id: 4, type: "deposit", amount: 10000, date: "Apr 5, 2025", description: "Salary Credit", status: "Success" },
-    ]
+    const [wallet, setWallet] = useState<any>(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        fetchWalletData()
+    }, [])
+
+    const fetchWalletData = async () => {
+        try {
+            setIsLoading(true)
+            const token = localStorage.getItem('auth_token')
+
+            if (!token) {
+                setError('Please login to view wallet')
+                return
+            }
+
+            const walletData = await WalletService.getWallet(token)
+            setWallet(walletData)
+            setError(null)
+        } catch (err: any) {
+            console.error('Failed to fetch wallet data:', err)
+            setError(err.message || 'Failed to load wallet data')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const balance = wallet?.balance || 0
+    const transactions = wallet?.transactions || []
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <FontAwesomeIcon icon={faSpinner} className="text-4xl text-gray-400 animate-spin mb-4" />
+                    <p className="text-gray-600">Loading wallet...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <Button onClick={fetchWalletData}>Retry</Button>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <motion.div
@@ -64,7 +115,7 @@ export default function WalletPage() {
                             <div className="flex justify-between items-start mb-8">
                                 <div>
                                     <p className="text-gray-400 text-sm font-medium mb-1">Total Balance</p>
-                                    <h2 className="text-4xl font-bold">₹12,450.00</h2>
+                                    <h2 className="text-4xl font-bold">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h2>
                                 </div>
                                 <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
                                     <FontAwesomeIcon icon={faWallet} className="text-white/80" />
@@ -84,24 +135,6 @@ export default function WalletPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Quick Actions Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {[
-                            { icon: faCreditCard, label: "Cards" },
-                            { icon: faUniversity, label: "Bank" },
-                            { icon: faMoneyBillWave, label: "Send" },
-                            { icon: faExchangeAlt, label: "Exchange" },
-                        ].map((action, i) => (
-                            <Card key={i} className="border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all cursor-pointer group bg-white">
-                                <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full">
-                                    <div className="h-10 w-10 rounded-full bg-gray-50 text-gray-500 flex items-center justify-center mb-2 group-hover:bg-gray-100 group-hover:text-gray-900 transition-colors">
-                                        <FontAwesomeIcon icon={action.icon} />
-                                    </div>
-                                    <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900">{action.label}</span>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
                 </div>
 
                 {/* Recent Transactions Column */}
@@ -113,30 +146,38 @@ export default function WalletPage() {
 
                     <Card className="border border-gray-100 bg-white">
                         <CardContent className="p-0">
-                            {transactions.map((tx, i) => (
-                                <div key={tx.id} className={`p-4 flex items-center justify-between hover:bg-gray-50 transition-colors ${i !== transactions.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                                    <div className="flex items-center gap-3">
-                                        <div className={`h-8 w-8 rounded-full flex items-center justify-center ${tx.type === 'deposit' ? 'bg-green-50 text-green-600' :
-                                            tx.type === 'withdrawal' ? 'bg-red-50 text-red-600' :
-                                                'bg-blue-50 text-blue-600'
-                                            }`}>
-                                            <FontAwesomeIcon icon={
-                                                tx.type === 'deposit' ? faArrowDown :
-                                                    tx.type === 'withdrawal' ? faArrowUp :
-                                                        faExchangeAlt
-                                            } className="h-3 w-3" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">{tx.description}</p>
-                                            <p className="text-xs text-gray-500">{tx.date}</p>
-                                        </div>
-                                    </div>
-                                    <span className={`text-sm font-semibold ${tx.type === 'deposit' ? 'text-green-600' : 'text-gray-900'
-                                        }`}>
-                                        {tx.type === 'deposit' ? '+' : '-'}₹{tx.amount.toLocaleString()}
-                                    </span>
+                            {transactions.length === 0 ? (
+                                <div className="p-8 text-center">
+                                    <FontAwesomeIcon icon={faHistory} className="text-4xl text-gray-300 mb-3" />
+                                    <p className="text-gray-600">No transactions yet</p>
+                                    <p className="text-sm text-gray-500 mt-1">Your transaction history will appear here</p>
                                 </div>
-                            ))}
+                            ) : (
+                                transactions.map((tx: any, i: number) => (
+                                    <div key={tx.id} className={`p-4 flex items-center justify-between hover:bg-gray-50 transition-colors ${i !== transactions.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center ${tx.type === 'deposit' || tx.type === 'credit' ? 'bg-green-50 text-green-600' :
+                                                tx.type === 'withdrawal' || tx.type === 'debit' ? 'bg-red-50 text-red-600' :
+                                                    'bg-blue-50 text-blue-600'
+                                                }`}>
+                                                <FontAwesomeIcon icon={
+                                                    tx.type === 'deposit' || tx.type === 'credit' ? faArrowDown :
+                                                        tx.type === 'withdrawal' || tx.type === 'debit' ? faArrowUp :
+                                                            faExchangeAlt
+                                                } className="h-3 w-3" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">{tx.description || tx.type}</p>
+                                                <p className="text-xs text-gray-500">{new Date(tx.created_at).toLocaleString()}</p>
+                                            </div>
+                                        </div>
+                                        <span className={`text-sm font-semibold ${tx.type === 'deposit' || tx.type === 'credit' ? 'text-green-600' : 'text-gray-900'
+                                            }`}>
+                                            {tx.type === 'deposit' || tx.type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString()}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
                         </CardContent>
                     </Card>
                 </div>
