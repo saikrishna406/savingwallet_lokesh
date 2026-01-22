@@ -147,7 +147,7 @@ export function Sidebar({ className }: { className?: string }) {
                     <div className="w-full flex items-center gap-x-4">
                         <Avatar className="w-10 h-10">
                             {/* Use avatar_url if available, or generate a fallback based on name */}
-                            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || 'User'}`} />
+                            <AvatarImage src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || 'User'}`} />
                             <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
                         </Avatar>
                         <div>
