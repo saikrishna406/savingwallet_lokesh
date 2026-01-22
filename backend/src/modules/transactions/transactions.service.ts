@@ -3,6 +3,7 @@ import { SupabaseService } from '../../supabase/supabase.service';
 
 export interface CreateTransactionDto {
     userId: string;
+    walletId?: string; // Made optional to support migration, but DB might require it
     amount: number;
     type: 'CREDIT' | 'DEBIT';
     source: 'SAVE' | 'WITHDRAW' | 'UPI' | 'GOAL_CONTRIBUTION';
@@ -21,6 +22,7 @@ export class TransactionsService {
             .from('transactions')
             .insert({
                 user_id: dto.userId,
+                wallet_id: dto.walletId,
                 amount: dto.amount,
                 type: dto.type,
                 source: dto.source,

@@ -28,9 +28,19 @@ export class WalletService {
     async addFunds(userId: string, amount: number, source: 'SAVE' | 'UPI' = 'UPI', referenceId?: string) {
         const supabase = this.supabaseService.getClient();
 
+        // 0. Fetch Wallet to get ID (Required for Transaction)
+        let wallet = await this.getWallet(userId).catch(() => null);
+        if (!wallet) {
+            // Create wallet if not exists (Auto-provisioning)
+            const { data, error } = await supabase.from('wallets').insert({ user_id: userId, balance: 0 }).select().single();
+            if (error) throw new Error('Failed to create wallet');
+            wallet = data;
+        }
+
         // 1. Create Transaction (PENDING)
         const transaction = await this.transactionsService.createTransaction({
             userId,
+            walletId: wallet.id,
             amount,
             type: 'CREDIT',
             source,
@@ -40,7 +50,7 @@ export class WalletService {
 
         // 2. Update Wallet Balance
         // Note: In a real production app, this should be a DB transaction/RPC
-        const { data: wallet, error } = await supabase.rpc('increment_wallet_balance', {
+        const { error } = await supabase.rpc('increment_wallet_balance', {
             row_id: userId, // Assuming rpc takes user_id, or we do a direct update
             amount_to_add: amount
         });
@@ -76,6 +86,7 @@ export class WalletService {
         // 2. Create Transaction (PENDING)
         const transaction = await this.transactionsService.createTransaction({
             userId,
+            walletId: wallet.id,
             amount,
             type: 'DEBIT',
             source,
