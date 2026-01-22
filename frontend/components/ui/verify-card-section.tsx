@@ -40,7 +40,8 @@ export default function VerifyCardSection() {
             const rawPhone = phone;
             const fullPhone = "91" + rawPhone; // Ensure matching prefix
 
-            const res = await fetch('http://localhost:3002/api/auth/verify-otp', {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+            const res = await fetch(`${API_URL}/auth/verify-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

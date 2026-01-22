@@ -250,92 +250,83 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[
-                        {
-                            title: "Trip to Goa",
-                            company: "Vacation Fund",
-                            amount: "₹8,500 / ₹20,000",
-                            location: "45 days left",
-                            type: "Remote, Remote, India",
-                            hours: "42% complete",
-                            posted: "Started Apr 8, 2025",
-                            percent: 42,
-                            icon: faPlane,
-                            color: "blue"
-                        },
-                        {
-                            title: "New Laptop",
-                            company: "Tech Upgrade",
-                            amount: "₹12,000 / ₹80,000",
-                            location: "120 days left",
-                            type: "Hybrid, Onsite, Bangalore",
-                            hours: "15% complete",
-                            posted: "Started Apr 8, 2025",
-                            percent: 15,
-                            icon: faLaptop,
-                            color: "purple"
-                        },
-                        {
-                            title: "Emergency Fund",
-                            company: "Safety Net",
-                            amount: "₹45,000 / ₹50,000",
-                            location: "10 days left",
-                            type: "Hybrid, Onsite, Mumbai",
-                            hours: "90% complete",
-                            posted: "Started Apr 7, 2025",
-                            percent: 90,
-                            icon: faShield,
-                            color: "green"
-                        },
-                    ].map((goal, i) => (
-                        <Card key={i} className="border border-gray-100 bg-white hover:shadow-md transition-shadow group">
-                            <CardContent className="p-5">
-                                {/* Header */}
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded bg-gray-100 flex items-center justify-center">
-                                            <FontAwesomeIcon icon={goal.icon} className="text-gray-600 text-lg" />
+                    {goals.length === 0 ? (
+                        <div className="col-span-full flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-gray-200 rounded-lg">
+                            <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                <FontAwesomeIcon icon={faBullseye} className="text-gray-400 text-xl" />
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900">No active goals</h3>
+                            <p className="text-sm text-gray-500 mb-4">Create your first savings goal to get started.</p>
+                            <CreateGoalDialog onGoalCreated={fetchDashboardData} />
+                        </div>
+                    ) : (
+                        goals.map((goal, i) => {
+                            const percent = goal.target_amount > 0
+                                ? Math.min(100, Math.round((goal.current_amount / goal.target_amount) * 100))
+                                : 0;
+
+                            const daysLeft = goal.target_date
+                                ? Math.ceil((new Date(goal.target_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                                : 0;
+
+                            return (
+                                <Card key={goal.id || i} className="border border-gray-100 bg-white hover:shadow-md transition-shadow group">
+                                    <CardContent className="p-5">
+                                        {/* Header */}
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded bg-blue-50 flex items-center justify-center">
+                                                    <FontAwesomeIcon icon={faBullseye} className="text-blue-600 text-lg" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-gray-900">{goal.name}</h3>
+                                                    <p className="text-sm text-gray-600 capitalize">{goal.category}</p>
+                                                </div>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <FontAwesomeIcon icon={faBookmark} className="text-gray-400 text-sm" />
+                                            </Button>
                                         </div>
-                                        <div>
-                                            <h3 className="font-semibold text-gray-900">{goal.title}</h3>
-                                            <p className="text-sm text-gray-600">{goal.company}</p>
+
+                                        {/* Amount */}
+                                        <div className="mb-3">
+                                            <div className="flex items-baseline gap-1">
+                                                <p className="text-lg font-semibold text-gray-900">₹{goal.current_amount?.toLocaleString()}</p>
+                                                <span className="text-sm text-gray-500">/ ₹{goal.target_amount?.toLocaleString()}</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <FontAwesomeIcon icon={faBookmark} className="text-gray-400 text-sm" />
-                                    </Button>
-                                </div>
 
-                                {/* Amount */}
-                                <div className="mb-3">
-                                    <p className="text-lg font-semibold text-gray-900">{goal.amount}</p>
-                                </div>
+                                        {/* Details */}
+                                        <div className="space-y-2 mb-4">
+                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                <FontAwesomeIcon icon={faClock} className="text-gray-400 text-xs" />
+                                                <span>{daysLeft > 0 ? `${daysLeft} days left` : 'Due today'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                <FontAwesomeIcon icon={faChartLine} className="text-gray-400 text-xs" />
+                                                <span>{percent}% complete</span>
+                                            </div>
+                                        </div>
 
-                                {/* Details */}
-                                <div className="space-y-2 mb-4">
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-400 text-xs" />
-                                        <span>{goal.location}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <FontAwesomeIcon icon={faClock} className="text-gray-400 text-xs" />
-                                        <span>{goal.hours}</span>
-                                    </div>
-                                </div>
+                                        {/* Progress Bar */}
+                                        <div className="mb-4">
+                                            <Progress value={percent} className="h-1" />
+                                        </div>
 
-                                {/* Progress Bar */}
-                                <div className="mb-4">
-                                    <Progress value={goal.percent} className="h-1" />
-                                </div>
-
-                                {/* Footer */}
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-500">{goal.posted}</span>
-                                    <PaymentModal />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                        {/* Footer */}
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-500">
+                                                Created {new Date(goal.created_at).toLocaleDateString()}
+                                            </span>
+                                            {/* Pass goal ID to payment modal if needed, currently generic */}
+                                            <PaymentModal />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )
+                        })
+                    )
+                    }
                 </div>
             </motion.div>
         </motion.div>

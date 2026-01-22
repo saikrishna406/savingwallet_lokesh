@@ -2,12 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
-async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
-
+// Helper to configure the app (shared between local and vercel)
+async function bootstrap(app) {
     // Enable CORS
     app.enableCors({
-        origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+        origin: process.env.CORS_ORIGIN || '*',
         credentials: true,
     });
 
@@ -22,10 +21,26 @@ async function bootstrap() {
 
     // Global prefix for all routes
     app.setGlobalPrefix('api');
-
-    const port = process.env.PORT || 3001;
-    await app.listen(port);
-    console.log(`🚀 Application is running on: http://localhost:${port}/api`);
 }
 
-bootstrap();
+// Local Development Entry Point
+if (require.main === module) {
+    (async () => {
+        const app = await NestFactory.create(AppModule);
+        await bootstrap(app);
+        const port = process.env.PORT || 3002;
+        await app.listen(port);
+        console.log(`🚀 Application is running on: http://localhost:${port}/api`);
+    })();
+}
+
+// Vercel / Serverless Entry Point
+export default async function handler(req: any, res: any) {
+    const app = await NestFactory.create(AppModule);
+    await bootstrap(app);
+    await app.init();
+
+    // Get the underlying express instance
+    const expressApp = app.getHttpAdapter().getInstance();
+    return expressApp(req, res);
+}

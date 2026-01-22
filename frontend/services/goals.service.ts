@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:3002/api/goals';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+const API_URL = `${BASE_URL}/goals`;
 
 export const GoalsService = {
     getGoals: async (token: string) => {

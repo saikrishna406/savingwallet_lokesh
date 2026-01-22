@@ -42,7 +42,8 @@ export default function LoginCardSection() {
             // Using 'email' state variable which now holds phone number
             const phone = "91" + email; // Prefix country code if needed, assuming user enters 10 digits
 
-            const res = await fetch('http://localhost:3002/api/auth/send-otp', {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+            const res = await fetch(`${API_URL}/auth/send-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone })
