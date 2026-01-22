@@ -8,14 +8,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentsModule = void 0;
 const common_1 = require("@nestjs/common");
+const payments_controller_1 = require("./payments.controller");
 const payments_service_1 = require("./payments.service");
+const supabase_module_1 = require("../../supabase/supabase.module");
+const transactions_module_1 = require("../transactions/transactions.module");
+const wallet_module_1 = require("../wallet/wallet.module");
 let PaymentsModule = class PaymentsModule {
 };
 exports.PaymentsModule = PaymentsModule;
 exports.PaymentsModule = PaymentsModule = __decorate([
     (0, common_1.Module)({
+        imports: [supabase_module_1.SupabaseModule, transactions_module_1.TransactionsModule, wallet_module_1.WalletModule],
+        controllers: [payments_controller_1.PaymentsController],
         providers: [payments_service_1.PaymentsService],
-        exports: [payments_service_1.PaymentsService],
+        exports: [payments_service_1.PaymentsService]
     })
 ], PaymentsModule);
 //# sourceMappingURL=payments.module.js.map

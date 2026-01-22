@@ -31,15 +31,31 @@ let WalletService = class WalletService {
     }
     async addFunds(userId, amount, source = 'UPI', referenceId) {
         const supabase = this.supabaseService.getClient();
+        let wallet = await this.getWallet(userId).catch(() => null);
+        if (!wallet) {
+            console.log(`Wallet not found for user ${userId}, creating new one...`);
+            const { data, error } = await supabase.from('wallets').insert({ user_id: userId, balance: 0 }).select().single();
+            if (error) {
+                console.error('Error creating wallet:', error);
+                throw new Error('Failed to create wallet');
+            }
+            wallet = data;
+        }
+        console.log('Using Wallet for Transaction:', JSON.stringify(wallet));
+        if (!wallet?.id) {
+            console.error('CRITICAL: Wallet object has no ID!', wallet);
+            throw new Error('Wallet ID is missing');
+        }
         const transaction = await this.transactionsService.createTransaction({
             userId,
+            walletId: wallet.id,
             amount,
             type: 'CREDIT',
             source,
             referenceId,
             status: 'PENDING'
         });
-        const { data: wallet, error } = await supabase.rpc('increment_wallet_balance', {
+        const { error } = await supabase.rpc('increment_wallet_balance', {
             row_id: userId,
             amount_to_add: amount
         });
@@ -61,6 +77,7 @@ let WalletService = class WalletService {
         }
         const transaction = await this.transactionsService.createTransaction({
             userId,
+            walletId: wallet.id,
             amount,
             type: 'DEBIT',
             source,

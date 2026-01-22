@@ -1,6 +1,7 @@
 import { SupabaseService } from '../../supabase/supabase.service';
 export interface CreateTransactionDto {
     userId: string;
+    walletId?: string;
     amount: number;
     type: 'CREDIT' | 'DEBIT';
     source: 'SAVE' | 'WITHDRAW' | 'UPI' | 'GOAL_CONTRIBUTION';

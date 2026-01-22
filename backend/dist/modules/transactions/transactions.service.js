@@ -22,6 +22,7 @@ let TransactionsService = class TransactionsService {
             .from('transactions')
             .insert({
             user_id: dto.userId,
+            wallet_id: dto.walletId,
             amount: dto.amount,
             type: dto.type,
             source: dto.source,
@@ -50,6 +51,11 @@ let TransactionsService = class TransactionsService {
         return data;
     }
     async getUserTransactions(userId) {
+        if (!userId) {
+            console.error('Error: userId is missing in getUserTransactions');
+            throw new common_1.InternalServerErrorException('User ID is undefined');
+        }
+        console.log(`Fetching transactions for user: ${userId}`);
         const supabase = this.supabaseService.getClient();
         const { data, error } = await supabase
             .from('transactions')
@@ -57,6 +63,7 @@ let TransactionsService = class TransactionsService {
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
         if (error) {
+            console.error('Supabase Error (getUserTransactions):', JSON.stringify(error, null, 2));
             throw new common_1.InternalServerErrorException(`Failed to fetch transactions: ${error.message}`);
         }
         return data;

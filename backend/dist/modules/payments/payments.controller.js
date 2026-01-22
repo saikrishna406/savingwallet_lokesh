@@ -12,31 +12,42 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionsController = void 0;
+exports.PaymentsController = void 0;
 const common_1 = require("@nestjs/common");
-const transactions_service_1 = require("./transactions.service");
+const payments_service_1 = require("./payments.service");
 const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
 const current_user_decorator_1 = require("../../common/decorators/current-user.decorator");
-let TransactionsController = class TransactionsController {
-    constructor(transactionsService) {
-        this.transactionsService = transactionsService;
+let PaymentsController = class PaymentsController {
+    constructor(paymentsService) {
+        this.paymentsService = paymentsService;
     }
-    async getHistory(user) {
-        console.log('TransactionsController.getHistory - User:', JSON.stringify(user));
-        return this.transactionsService.getUserTransactions(user.id);
+    async createOrder(user, amount) {
+        return this.paymentsService.createOrder(user.id, amount);
+    }
+    async verifyPayment(user, body) {
+        return this.paymentsService.verifyPayment(user.id, body);
     }
 };
-exports.TransactionsController = TransactionsController;
+exports.PaymentsController = PaymentsController;
 __decorate([
-    (0, common_1.Get)(),
+    (0, common_1.Post)('create-order'),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)('amount')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", Promise)
-], TransactionsController.prototype, "getHistory", null);
-exports.TransactionsController = TransactionsController = __decorate([
-    (0, common_1.Controller)('transactions'),
+], PaymentsController.prototype, "createOrder", null);
+__decorate([
+    (0, common_1.Post)('verify'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], PaymentsController.prototype, "verifyPayment", null);
+exports.PaymentsController = PaymentsController = __decorate([
+    (0, common_1.Controller)('payments'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __metadata("design:paramtypes", [transactions_service_1.TransactionsService])
-], TransactionsController);
-//# sourceMappingURL=transactions.controller.js.map
+    __metadata("design:paramtypes", [payments_service_1.PaymentsService])
+], PaymentsController);
+//# sourceMappingURL=payments.controller.js.map

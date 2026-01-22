@@ -6,10 +6,12 @@ export class JwtAuthGuard implements CanActivate {
     constructor(private readonly supabaseService: SupabaseService) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
+        console.log('JwtAuthGuard: Checking request...');
         const request = context.switchToHttp().getRequest();
         const authHeader = request.headers.authorization;
 
         if (!authHeader) {
+            console.error('JwtAuthGuard: No auth header');
             throw new UnauthorizedException('No token provided');
         }
 
