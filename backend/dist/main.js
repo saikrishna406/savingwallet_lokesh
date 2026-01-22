@@ -4,6 +4,7 @@ exports.default = handler;
 const core_1 = require("@nestjs/core");
 const common_1 = require("@nestjs/common");
 const app_module_1 = require("./app.module");
+const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 async function bootstrap(app) {
     app.enableCors({
         origin: (origin, callback) => {
@@ -16,6 +17,7 @@ async function bootstrap(app) {
         forbidNonWhitelisted: true,
         transform: true,
     }));
+    app.useGlobalFilters(new http_exception_filter_1.AllExceptionsFilter());
     app.setGlobalPrefix('api');
 }
 if (require.main === module) {

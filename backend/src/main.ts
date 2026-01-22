@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 // Helper to configure the app (shared between local and vercel)
 async function bootstrap(app) {
@@ -20,6 +21,9 @@ async function bootstrap(app) {
             transform: true,
         }),
     );
+
+    // Global Exception Filter
+    app.useGlobalFilters(new AllExceptionsFilter());
 
     // Global prefix for all routes
     app.setGlobalPrefix('api');

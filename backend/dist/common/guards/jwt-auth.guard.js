@@ -17,9 +17,11 @@ let JwtAuthGuard = class JwtAuthGuard {
         this.supabaseService = supabaseService;
     }
     async canActivate(context) {
+        console.log('JwtAuthGuard: Checking request...');
         const request = context.switchToHttp().getRequest();
         const authHeader = request.headers.authorization;
         if (!authHeader) {
+            console.error('JwtAuthGuard: No auth header');
             throw new common_1.UnauthorizedException('No token provided');
         }
         const [bearer, token] = authHeader.split(' ');
