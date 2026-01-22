@@ -1,4 +1,5 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
+import { MobileSidebar } from "@/components/dashboard/mobile-sidebar"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 import { Toaster } from "@/components/ui/toaster"
@@ -13,9 +14,7 @@ export default function DashboardLayout({
             {/* Mobile Header */}
             <div className="lg:hidden flex items-center justify-between p-4 border-b bg-white">
                 <span className="font-bold text-primary">CoinJar</span>
-                <Button variant="ghost" size="icon">
-                    <Menu className="h-6 w-6" />
-                </Button>
+                <MobileSidebar />
             </div>
 
             {/* Desktop Sidebar - Fixed Position */}
