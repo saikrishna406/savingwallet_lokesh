@@ -198,7 +198,7 @@ export default function SettingsPage() {
                             <Button
                                 size="sm"
                                 className="bg-gray-900 text-white hover:bg-gray-800"
-                                onClick={handleSaveProfile}
+                                onClick={() => handleSaveProfile()}
                                 disabled={isLoading}
                             >
                                 <FontAwesomeIcon icon={faSave} className="mr-2 h-3.5 w-3.5" />
