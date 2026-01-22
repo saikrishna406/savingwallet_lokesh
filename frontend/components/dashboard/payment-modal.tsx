@@ -28,6 +28,16 @@ export function PaymentModal({ goalId, onSuccess }: PaymentModalProps) {
     const [step, setStep] = useState<"input" | "processing" | "success">("input")
     const [error, setError] = useState("")
 
+    const loadRazorpay = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script')
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+            script.onload = () => resolve(true)
+            script.onerror = () => resolve(false)
+            document.body.appendChild(script)
+        })
+    }
+
     const handlePay = async (e: React.FormEvent) => {
         e.preventDefault()
         setStep("processing")
@@ -37,22 +47,52 @@ export function PaymentModal({ goalId, onSuccess }: PaymentModalProps) {
             const token = localStorage.getItem('auth_token')
             if (!token) throw new Error("Not authenticated")
 
-            if (goalId) {
-                // Real backend call
-                await GoalsService.addSavings(token, goalId, parseFloat(amount))
-                setStep("success")
-                if (onSuccess) onSuccess()
-            } else {
-                // Fallback for mock/generic (or throw error)
-                // For now, simulate success if no goalId (legacy behavior)
-                setTimeout(() => {
-                    setStep("success")
-                }, 1500)
+            // 1. Create Order
+            const { PaymentsService } = await import("@/services/payments.service") // Dynamic import to avoid cycles? No, just import top level usually.
+            const order = await PaymentsService.createOrder(token, parseFloat(amount))
+
+            // 2. Load Razorpay
+            const isLoaded = await loadRazorpay()
+            if (!isLoaded) throw new Error("Razorpay SDK failed to load")
+
+            // 3. Open Options
+            const options = {
+                key: "rzp_test_S725ahmuTOc1mm", // Ideally from env, but user gave it directly
+                amount: order.amount,
+                currency: order.currency,
+                name: "Saving Wallet",
+                description: "Goal Contribution",
+                order_id: order.id,
+                handler: async function (response: any) {
+                    try {
+                        // 4. Verify Payment
+                        await PaymentsService.verifyPayment(token, response)
+                        setStep("success")
+                        if (onSuccess) onSuccess()
+                    } catch (verifyErr: any) {
+                        console.error(verifyErr)
+                        setError(verifyErr.message || "Payment verification failed")
+                        setStep("input")
+                    }
+                },
+                prefill: {
+                    name: "User", // Can fetch from profile
+                    email: "user@example.com",
+                    contact: "9999999999"
+                },
+                theme: {
+                    color: "#111827"
+                }
             }
+
+            const paymentObject = new (window as any).Razorpay(options)
+            paymentObject.open()
+
+            // Keep processing state until handler called
         } catch (err: any) {
             console.error(err)
-            setError(err.message || "Payment failed")
-            setStep("input") // Go back to input on error
+            setError(err.message || "Payment initialization failed")
+            setStep("input")
         }
     }
 
