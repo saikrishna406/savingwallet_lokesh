@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { GoalsService } from './goals.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -16,5 +16,14 @@ export class GoalsController {
     @Post()
     async createGoal(@CurrentUser() user: any, @Body() body: any) {
         return this.goalsService.createGoal(user.id, body);
+    }
+
+    @Post(':id/add-savings')
+    async addSavings(
+        @CurrentUser() user: any,
+        @Param('id') id: string,
+        @Body('amount') amount: number
+    ) {
+        return this.goalsService.addSavings(user.id, id, amount);
     }
 }

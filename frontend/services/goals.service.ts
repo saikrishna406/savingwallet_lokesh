@@ -35,5 +35,23 @@ export const GoalsService = {
         }
 
         return await res.json();
+    },
+
+    addSavings: async (token: string, goalId: string, amount: number) => {
+        const res = await fetch(`${API_URL}/${goalId}/add-savings`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ amount })
+        });
+
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.message || 'Failed to add savings');
+        }
+
+        return await res.json();
     }
 };

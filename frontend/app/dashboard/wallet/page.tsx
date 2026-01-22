@@ -19,6 +19,7 @@ import {
     faSpinner
 } from '@fortawesome/free-solid-svg-icons'
 import { WalletService } from "@/services/wallet.service"
+import { TransactionsService } from "@/services/transactions.service"
 
 const container = {
     hidden: { opacity: 0 },
@@ -37,6 +38,7 @@ const item = {
 
 export default function WalletPage() {
     const [wallet, setWallet] = useState<any>(null)
+    const [transactions, setTransactions] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
@@ -54,8 +56,14 @@ export default function WalletPage() {
                 return
             }
 
-            const walletData = await WalletService.getWallet(token)
+            // Fetch Wallet and Transactions in parallel
+            const [walletData, txHistory] = await Promise.all([
+                WalletService.getWallet(token),
+                TransactionsService.getHistory(token)
+            ])
+
             setWallet(walletData)
+            setTransactions(txHistory)
             setError(null)
         } catch (err: any) {
             console.error('Failed to fetch wallet data:', err)
@@ -66,7 +74,7 @@ export default function WalletPage() {
     }
 
     const balance = wallet?.balance || 0
-    const transactions = wallet?.transactions || []
+
 
     if (isLoading) {
         return (
@@ -156,24 +164,26 @@ export default function WalletPage() {
                                 transactions.map((tx: any, i: number) => (
                                     <div key={tx.id} className={`p-4 flex items-center justify-between hover:bg-gray-50 transition-colors ${i !== transactions.length - 1 ? 'border-b border-gray-100' : ''}`}>
                                         <div className="flex items-center gap-3">
-                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center ${tx.type === 'deposit' || tx.type === 'credit' ? 'bg-green-50 text-green-600' :
-                                                tx.type === 'withdrawal' || tx.type === 'debit' ? 'bg-red-50 text-red-600' :
-                                                    'bg-blue-50 text-blue-600'
+                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center ${tx.type === 'CREDIT' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
                                                 }`}>
                                                 <FontAwesomeIcon icon={
-                                                    tx.type === 'deposit' || tx.type === 'credit' ? faArrowDown :
-                                                        tx.type === 'withdrawal' || tx.type === 'debit' ? faArrowUp :
-                                                            faExchangeAlt
+                                                    tx.type === 'CREDIT' ? faArrowDown : faArrowUp
                                                 } className="h-3 w-3" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-gray-900">{tx.description || tx.type}</p>
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    {tx.source === 'SAVE' ? 'Savings Deposit' :
+                                                        tx.source === 'WITHDRAW' ? 'Withdrawal' :
+                                                            tx.source === 'UPI' ? 'UPI Deposit' :
+                                                                tx.source === 'GOAL_CONTRIBUTION' ? 'Goal Contribution' :
+                                                                    tx.source}
+                                                </p>
                                                 <p className="text-xs text-gray-500">{new Date(tx.created_at).toLocaleString()}</p>
                                             </div>
                                         </div>
-                                        <span className={`text-sm font-semibold ${tx.type === 'deposit' || tx.type === 'credit' ? 'text-green-600' : 'text-gray-900'
+                                        <span className={`text-sm font-semibold ${tx.type === 'CREDIT' ? 'text-green-600' : 'text-gray-900'
                                             }`}>
-                                            {tx.type === 'deposit' || tx.type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString()}
+                                            {tx.type === 'CREDIT' ? '+' : '-'}₹{Number(tx.amount).toLocaleString()}
                                         </span>
                                     </div>
                                 ))

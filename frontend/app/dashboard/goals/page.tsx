@@ -166,7 +166,7 @@ export default function GoalsPage() {
                                 {/* Footer Actions */}
                                 <div className="pt-4 border-t border-gray-50 flex gap-3">
                                     <div className="flex-1">
-                                        <PaymentModal />
+                                        <PaymentModal goalId={goal.id} onSuccess={fetchGoals} />
                                     </div>
                                 </div>
                             </CardContent>

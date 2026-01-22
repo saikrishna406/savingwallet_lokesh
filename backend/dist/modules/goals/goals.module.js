@@ -11,12 +11,13 @@ const common_1 = require("@nestjs/common");
 const goals_controller_1 = require("./goals.controller");
 const goals_service_1 = require("./goals.service");
 const supabase_module_1 = require("../../supabase/supabase.module");
+const wallet_module_1 = require("../../modules/wallet/wallet.module");
 let GoalsModule = class GoalsModule {
 };
 exports.GoalsModule = GoalsModule;
 exports.GoalsModule = GoalsModule = __decorate([
     (0, common_1.Module)({
-        imports: [supabase_module_1.SupabaseModule],
+        imports: [supabase_module_1.SupabaseModule, wallet_module_1.WalletModule],
         controllers: [goals_controller_1.GoalsController],
         providers: [goals_service_1.GoalsService],
     })

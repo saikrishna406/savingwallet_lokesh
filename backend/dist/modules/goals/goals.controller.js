@@ -27,6 +27,9 @@ let GoalsController = class GoalsController {
     async createGoal(user, body) {
         return this.goalsService.createGoal(user.id, body);
     }
+    async addSavings(user, id, amount) {
+        return this.goalsService.addSavings(user.id, id, amount);
+    }
 };
 exports.GoalsController = GoalsController;
 __decorate([
@@ -44,6 +47,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "createGoal", null);
+__decorate([
+    (0, common_1.Post)(':id/add-savings'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)('amount')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Number]),
+    __metadata("design:returntype", Promise)
+], GoalsController.prototype, "addSavings", null);
 exports.GoalsController = GoalsController = __decorate([
     (0, common_1.Controller)('goals'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

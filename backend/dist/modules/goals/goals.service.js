@@ -12,9 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GoalsService = void 0;
 const common_1 = require("@nestjs/common");
 const supabase_service_1 = require("../../supabase/supabase.service");
+const wallet_service_1 = require("../../modules/wallet/wallet.service");
 let GoalsService = class GoalsService {
-    constructor(supabaseService) {
+    constructor(supabaseService, walletService) {
         this.supabaseService = supabaseService;
+        this.walletService = walletService;
     }
     async getGoals(userId) {
         const supabase = this.supabaseService.getClient();
@@ -49,10 +51,35 @@ let GoalsService = class GoalsService {
         }
         return data;
     }
+    async addSavings(userId, goalId, amount) {
+        const supabase = this.supabaseService.getClient();
+        await this.walletService.addFunds(userId, amount, 'SAVE', goalId);
+        const { data: goal, error: fetchError } = await supabase
+            .from('goals')
+            .select('*')
+            .eq('id', goalId)
+            .eq('user_id', userId)
+            .single();
+        if (fetchError || !goal) {
+            throw new common_1.InternalServerErrorException('Goal not found');
+        }
+        const newAmount = (goal.current_amount || 0) + amount;
+        const { data: updatedGoal, error: updateError } = await supabase
+            .from('goals')
+            .update({ current_amount: newAmount })
+            .eq('id', goalId)
+            .select()
+            .single();
+        if (updateError) {
+            throw new common_1.InternalServerErrorException('Failed to update goal amount');
+        }
+        return updatedGoal;
+    }
 };
 exports.GoalsService = GoalsService;
 exports.GoalsService = GoalsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [supabase_service_1.SupabaseService])
+    __metadata("design:paramtypes", [supabase_service_1.SupabaseService,
+        wallet_service_1.WalletService])
 ], GoalsService);
 //# sourceMappingURL=goals.service.js.map

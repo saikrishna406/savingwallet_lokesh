@@ -15,26 +15,56 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRupeeSign, faQrcode, faCheck } from '@fortawesome/free-solid-svg-icons'
 import { useState } from "react"
 
-export function PaymentModal() {
+import { GoalsService } from "@/services/goals.service"
+
+interface PaymentModalProps {
+    goalId?: string;
+    onSuccess?: () => void;
+}
+
+export function PaymentModal({ goalId, onSuccess }: PaymentModalProps) {
     const [open, setOpen] = useState(false)
     const [amount, setAmount] = useState("")
     const [step, setStep] = useState<"input" | "processing" | "success">("input")
+    const [error, setError] = useState("")
 
-    const handlePay = (e: React.FormEvent) => {
+    const handlePay = async (e: React.FormEvent) => {
         e.preventDefault()
         setStep("processing")
+        setError("")
 
-        // Simulate payment gateway delay
-        setTimeout(() => {
-            setStep("success")
-        }, 2000)
+        try {
+            const token = localStorage.getItem('auth_token')
+            if (!token) throw new Error("Not authenticated")
+
+            if (goalId) {
+                // Real backend call
+                await GoalsService.addSavings(token, goalId, parseFloat(amount))
+                setStep("success")
+                if (onSuccess) onSuccess()
+            } else {
+                // Fallback for mock/generic (or throw error)
+                // For now, simulate success if no goalId (legacy behavior)
+                setTimeout(() => {
+                    setStep("success")
+                }, 1500)
+            }
+        } catch (err: any) {
+            console.error(err)
+            setError(err.message || "Payment failed")
+            setStep("input") // Go back to input on error
+        }
     }
 
     return (
         <Dialog open={open} onOpenChange={(val) => {
             setOpen(val)
             if (!val) {
-                setTimeout(() => setStep("input"), 300) // Reset after close
+                setTimeout(() => {
+                    setStep("input")
+                    setAmount("")
+                    setError("")
+                }, 300)
             }
         }}>
             <DialogTrigger asChild>
@@ -68,6 +98,7 @@ export function PaymentModal() {
                                     onChange={(e) => setAmount(e.target.value)}
                                     className="text-lg font-bold"
                                 />
+                                {error && <p className="text-sm text-red-500">{error}</p>}
                             </div>
                         </div>
                         <DialogFooter>
@@ -82,7 +113,7 @@ export function PaymentModal() {
                             <div className="absolute inset-0 border-4 border-muted rounded-full"></div>
                             <div className="absolute inset-0 border-4 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
                         </div>
-                        <p className="font-medium animate-pulse">Contacting Bank...</p>
+                        <p className="font-medium animate-pulse">Processing Payment...</p>
                     </div>
                 )}
 

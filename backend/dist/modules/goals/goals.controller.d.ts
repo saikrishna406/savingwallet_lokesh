@@ -4,4 +4,5 @@ export declare class GoalsController {
     constructor(goalsService: GoalsService);
     getGoals(user: any): Promise<any[]>;
     createGoal(user: any, body: any): Promise<any>;
+    addSavings(user: any, id: string, amount: number): Promise<any>;
 }
