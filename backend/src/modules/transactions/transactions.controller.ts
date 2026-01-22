@@ -10,6 +10,7 @@ export class TransactionsController {
 
     @Get()
     async getHistory(@CurrentUser() user: any) {
+        console.log('TransactionsController.getHistory - User:', JSON.stringify(user));
         return this.transactionsService.getUserTransactions(user.id);
     }
 }

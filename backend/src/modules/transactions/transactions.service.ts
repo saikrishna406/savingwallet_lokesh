@@ -56,6 +56,12 @@ export class TransactionsService {
     }
 
     async getUserTransactions(userId: string) {
+        if (!userId) {
+            console.error('Error: userId is missing in getUserTransactions');
+            throw new InternalServerErrorException('User ID is undefined');
+        }
+        console.log(`Fetching transactions for user: ${userId}`);
+
         const supabase = this.supabaseService.getClient();
 
         const { data, error } = await supabase

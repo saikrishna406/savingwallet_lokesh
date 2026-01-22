@@ -15,7 +15,14 @@ export const TransactionsService = {
         });
 
         if (!res.ok) {
-            throw new Error('Failed to fetch transactions');
+            let errorMessage = 'Failed to fetch transactions';
+            try {
+                const errorData = await res.json();
+                errorMessage = errorData.message || errorMessage;
+            } catch (e) {
+                // Ignore json parse error
+            }
+            throw new Error(errorMessage);
         }
 
         return await res.json();
