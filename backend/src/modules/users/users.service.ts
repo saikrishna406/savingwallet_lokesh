@@ -6,7 +6,7 @@ import { PaymentsService } from '../payments/payments.service';
 export class UsersService {
     constructor(
         private supabaseService: SupabaseService,
-        private paymentsService: PaymentsService
+        // private paymentsService: PaymentsService
     ) { }
 
     async getProfile(userId: string) {
@@ -36,11 +36,11 @@ export class UsersService {
 
     async linkUpi(userId: string, upiId: string) {
         // Verify UPI ID first
-        const verification = await this.paymentsService.verifyUpiId(upiId);
+        // const verification = await this.paymentsService.verifyUpiId(upiId);
 
-        if (!verification.valid) {
-            throw new BadRequestException('Invalid UPI ID. Please check and try again.');
-        }
+        // if (!verification.valid) {
+        //    throw new BadRequestException('Invalid UPI ID. Please check and try again.');
+        // }
 
         // If valid, link it
         return this.updateProfile(userId, { upi_id: upiId });

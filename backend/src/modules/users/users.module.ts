@@ -4,7 +4,7 @@ import { UsersService } from './users.service';
 import { PaymentsModule } from '../payments/payments.module';
 
 @Module({
-    imports: [PaymentsModule],
+    imports: [], // PaymentsModule removed temporarily
     controllers: [UsersController],
     providers: [UsersService],
     exports: [UsersService],
