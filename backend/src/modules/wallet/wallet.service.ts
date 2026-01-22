@@ -32,9 +32,19 @@ export class WalletService {
         let wallet = await this.getWallet(userId).catch(() => null);
         if (!wallet) {
             // Create wallet if not exists (Auto-provisioning)
+            console.log(`Wallet not found for user ${userId}, creating new one...`);
             const { data, error } = await supabase.from('wallets').insert({ user_id: userId, balance: 0 }).select().single();
-            if (error) throw new Error('Failed to create wallet');
+            if (error) {
+                console.error('Error creating wallet:', error);
+                throw new Error('Failed to create wallet');
+            }
             wallet = data;
+        }
+
+        console.log('Using Wallet for Transaction:', JSON.stringify(wallet));
+        if (!wallet?.id) {
+            console.error('CRITICAL: Wallet object has no ID!', wallet);
+            throw new Error('Wallet ID is missing');
         }
 
         // 1. Create Transaction (PENDING)
