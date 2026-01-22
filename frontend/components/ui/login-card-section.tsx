@@ -42,7 +42,8 @@ export default function LoginCardSection() {
             // Using 'email' state variable which now holds phone number
             const phone = "91" + email; // Prefix country code if needed, assuming user enters 10 digits
 
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+            const isProduction = process.env.NODE_ENV === 'production';
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || (isProduction ? '/api' : 'http://localhost:3002/api');
             const res = await fetch(`${API_URL}/auth/send-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -61,7 +62,8 @@ export default function LoginCardSection() {
             }
         } catch (error) {
             console.error("Login error", error);
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+            const isProduction = process.env.NODE_ENV === 'production';
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || (isProduction ? '/api' : 'http://localhost:3002/api');
             alert(`Failed to connect to server at ${API_URL}. Error: ${error}`);
         } finally {
             setIsLoading(false);

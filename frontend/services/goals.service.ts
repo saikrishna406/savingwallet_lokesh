@@ -1,4 +1,5 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+const isProduction = process.env.NODE_ENV === 'production';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || (isProduction ? '/api' : 'http://localhost:3002/api');
 const API_URL = `${BASE_URL}/goals`;
 
 export const GoalsService = {
