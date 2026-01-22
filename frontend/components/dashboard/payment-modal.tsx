@@ -136,7 +136,7 @@ export function PaymentModal({ goalId, onSuccess }: PaymentModalProps) {
                                     required
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
-                                    className="text-lg font-bold"
+                                    className="text-lg font-bold text-white bg-gray-800 border-gray-700 focus:ring-gray-600"
                                 />
                                 {error && <p className="text-sm text-red-500">{error}</p>}
                             </div>
