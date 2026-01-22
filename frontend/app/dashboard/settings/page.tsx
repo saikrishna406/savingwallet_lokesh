@@ -34,7 +34,7 @@ const item = {
 import { useState, useEffect } from "react"
 import { createClient } from "@supabase/supabase-js"
 import { UserService } from "@/services/user.service"
-import { useToast } from "@/components/ui/use-toast" // Assuming you have a toast component or use alert
+
 
 export default function SettingsPage() {
     const [isLoading, setIsLoading] = useState(false)
