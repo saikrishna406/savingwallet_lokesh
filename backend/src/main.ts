@@ -6,7 +6,9 @@ import { AppModule } from './app.module';
 async function bootstrap(app) {
     // Enable CORS
     app.enableCors({
-        origin: process.env.CORS_ORIGIN || '*',
+        origin: (origin, callback) => {
+            callback(null, true);
+        },
         credentials: true,
     });
 

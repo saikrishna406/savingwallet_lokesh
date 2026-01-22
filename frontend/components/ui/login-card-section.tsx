@@ -61,7 +61,8 @@ export default function LoginCardSection() {
             }
         } catch (error) {
             console.error("Login error", error);
-            alert("Failed to connect to server");
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+            alert(`Failed to connect to server at ${API_URL}. Error: ${error}`);
         } finally {
             setIsLoading(false);
         }
