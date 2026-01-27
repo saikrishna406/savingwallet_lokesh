@@ -10,7 +10,7 @@ export default function DashboardLayout({
     children: React.ReactNode
 }) {
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white overflow-x-hidden">
             {/* Mobile Header */}
             <div className="lg:hidden flex items-center justify-between p-4 border-b bg-white">
                 <span className="font-bold text-primary">CoinJar</span>

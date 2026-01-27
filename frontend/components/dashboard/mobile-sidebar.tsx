@@ -18,7 +18,7 @@ export function MobileSidebar() {
                 className="lg:hidden"
                 onClick={() => setIsOpen(true)}
             >
-                <FontAwesomeIcon icon={faBars} className="h-6 w-6 text-gray-600" />
+                <FontAwesomeIcon icon={faBars} className="h-5 w-5 text-gray-700" />
             </Button>
 
             <AnimatePresence>
