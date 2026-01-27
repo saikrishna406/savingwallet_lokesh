@@ -164,7 +164,7 @@ export function Sidebar({ className }: { className?: string }) {
                                 <div
                                     id="profile-menu"
                                     role="menu"
-                                    className="absolute z-10 bottom-12 right-0 w-64 rounded-lg bg-white shadow-md border text-sm text-gray-600 mb-2"
+                                    className="absolute z-10 top-12 right-0 w-64 rounded-lg bg-white shadow-md border text-sm text-gray-600 mb-2"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     <div className="p-2 text-left">
