@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function MobileSidebar() {
@@ -17,7 +18,7 @@ export function MobileSidebar() {
                 className="lg:hidden"
                 onClick={() => setIsOpen(true)}
             >
-                <Menu className="h-6 w-6" />
+                <FontAwesomeIcon icon={faBars} className="h-6 w-6 text-gray-600" />
             </Button>
 
             <AnimatePresence>
@@ -46,7 +47,7 @@ export function MobileSidebar() {
                                     size="icon"
                                     onClick={() => setIsOpen(false)}
                                 >
-                                    <X className="h-5 w-5" />
+                                    <FontAwesomeIcon icon={faTimes} className="h-5 w-5 text-gray-600" />
                                 </Button>
                             </div>
                             {/* Force sidebar to take full height and be relative to this container if needed, 
