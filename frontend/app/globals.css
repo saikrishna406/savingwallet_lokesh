@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@layer base {
+
+  html,
+  body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+  }
+}
+
 @theme {
   --font-sans: var(--font-jakarta), var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono);
