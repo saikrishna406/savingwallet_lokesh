@@ -23,8 +23,8 @@ export default function DashboardLayout({
             </div>
 
             {/* Content - With left margin for sidebar */}
-            <div className="lg:ml-[260px] bg-gray-50 min-h-screen">
-                <div className="px-8 py-6">
+            <div className="lg:ml-[260px] bg-gray-50 min-h-screen w-full overflow-hidden">
+                <div className="px-4 py-6 lg:px-8">
                     {children}
                 </div>
             </div>
