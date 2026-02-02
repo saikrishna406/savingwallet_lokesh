@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import { AchievementsCard } from "@/components/dashboard/achievements-card"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { motion } from "framer-motion"
 import {
@@ -250,6 +251,11 @@ export default function DashboardPage() {
                     <p className="text-2xl font-bold text-gray-900">-- Days</p>
                     <p className="text-xs text-gray-500 mt-1">Coming soon</p>
                 </div>
+            </motion.div>
+
+            {/* Gamification Section */}
+            <motion.div variants={item}>
+                <AchievementsCard />
             </motion.div>
 
             {/* Active Goals Section */}

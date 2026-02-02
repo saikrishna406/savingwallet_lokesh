@@ -1,12 +1,14 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../../supabase/supabase.service';
 import { WalletService } from '../../modules/wallet/wallet.service';
+import { GamificationService } from '../gamification/gamification.service';
 
 @Injectable()
 export class GoalsService {
     constructor(
         private readonly supabaseService: SupabaseService,
-        private readonly walletService: WalletService
+        private readonly walletService: WalletService,
+        private readonly gamificationService: GamificationService
     ) { }
 
     async getGoals(userId: string) {
@@ -56,6 +58,9 @@ export class GoalsService {
     }
 
     async addSavings(userId: string, goalId: string, amount: number) {
+        // Gamification: Update Streak
+        await this.gamificationService.updateStreak(userId);
+
         const supabase = this.supabaseService.getClient();
 
         // 1. Add Funds to Wallet (Creates Transaction + Updates Wallet Balance)
@@ -83,6 +88,8 @@ export class GoalsService {
         // Check if goal is completed
         if (newAmount >= goal.target_amount && goal.status !== 'completed' && goal.status !== 'withdrawn') {
             newStatus = 'completed';
+            // Gamification: Award Badge
+            await this.gamificationService.checkGoalCompletionBadges(userId);
         }
 
         const { data: updatedGoal, error: updateError } = await supabase

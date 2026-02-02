@@ -8,6 +8,7 @@ import { GoalsModule } from './modules/goals/goals.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { NudgesModule } from './modules/nudges/nudges.module';
+import { GamificationModule } from './modules/gamification/gamification.module';
 
 @Module({
     imports: [
@@ -23,6 +24,7 @@ import { NudgesModule } from './modules/nudges/nudges.module';
         TransactionsModule,
         PaymentsModule,
         NudgesModule,
+        GamificationModule,
     ],
 })
 export class AppModule { }
