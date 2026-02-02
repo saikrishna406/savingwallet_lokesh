@@ -29,9 +29,11 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { CreateGoalDialog } from "@/components/dashboard/create-goal-dialog"
 import { PaymentModal } from "@/components/dashboard/payment-modal"
+import { NotificationBell } from "@/components/dashboard/notification-bell"
 import { GoalsService } from "@/services/goals.service"
 import { WalletService } from "@/services/wallet.service"
 import { UpiService } from "@/services/upi.service"
+import { GamificationService } from "@/services/gamification.service"
 
 const container = {
     hidden: { opacity: 0 },
@@ -52,6 +54,7 @@ export default function DashboardPage() {
     const [goals, setGoals] = useState<any[]>([])
     const [wallet, setWallet] = useState<any>(null)
     const [userProfile, setUserProfile] = useState<any>(null)
+    const [streak, setStreak] = useState<number>(0)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
@@ -81,16 +84,18 @@ export default function DashboardPage() {
                 return
             }
 
-            // Fetch goals, wallet, and user profile data in parallel
-            const [goalsData, walletData, profileData] = await Promise.all([
+            // Fetch goals, wallet, user profile, and gamification data in parallel
+            const [goalsData, walletData, profileData, gameData] = await Promise.all([
                 GoalsService.getGoals(token),
                 WalletService.getWallet(token),
-                UpiService.getProfile(token)
+                UpiService.getProfile(token),
+                GamificationService.getStatus(token)
             ])
 
             setGoals(goalsData)
             setWallet(walletData)
             setUserProfile(profileData)
+            setStreak(gameData.streak || 0)
             setError(null)
         } catch (err: any) {
             console.error('Failed to fetch dashboard data:', err)
@@ -143,11 +148,14 @@ export default function DashboardPage() {
             className="space-y-8 max-w-[1200px]"
         >
             {/* Hero Section */}
-            <motion.div variants={item} className="space-y-2">
-                <h1 className="text-4xl font-bold text-gray-900">CoinJar</h1>
-                <p className="text-gray-600 max-w-md">
-                    Start your savings journey. Your next financial goal is here! Don't hold the ball - get it rolling.
-                </p>
+            <motion.div variants={item} className="flex items-start justify-between">
+                <div className="space-y-2">
+                    <h1 className="text-4xl font-bold text-gray-900">CoinJar</h1>
+                    <p className="text-gray-600 max-w-md">
+                        Start your savings journey. Your next financial goal is here! Don't hold the ball - get it rolling.
+                    </p>
+                </div>
+                <NotificationBell />
             </motion.div>
 
             {/* Quick Stats Cards */}
@@ -245,11 +253,11 @@ export default function DashboardPage() {
                 </div>
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <FontAwesomeIcon icon={faFire} className="text-gray-400 text-sm" />
+                        <FontAwesomeIcon icon={faFire} className="text-orange-500 text-sm" />
                         <p className="text-sm text-gray-600">Saving Streak</p>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">-- Days</p>
-                    <p className="text-xs text-gray-500 mt-1">Coming soon</p>
+                    <p className="text-2xl font-bold text-gray-900">{streak} Days</p>
+                    <p className="text-xs text-gray-500 mt-1">Keep it up!</p>
                 </div>
             </motion.div>
 

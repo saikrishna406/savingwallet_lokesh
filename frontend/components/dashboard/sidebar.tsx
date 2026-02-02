@@ -22,7 +22,6 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { NotificationBell } from "@/components/dashboard/notification-bell";
 
 type MenuItem = { name: string; href: string; icon?: React.ReactNode };
 
@@ -161,7 +160,7 @@ export function Sidebar({ className }: { className?: string }) {
                         </div>
                     </div>
 
-                    <NotificationBell />
+
 
                     {/* Profile Dropdown */}
                     {isProfileActive && (
