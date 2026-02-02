@@ -22,6 +22,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NotificationBell } from "@/components/dashboard/notification-bell";
 
 type MenuItem = { name: string; href: string; icon?: React.ReactNode };
 
@@ -143,78 +144,60 @@ export function Sidebar({ className }: { className?: string }) {
     return (
         <nav className={`fixed top-0 left-0 w-[260px] h-full border-r border-gray-200 bg-white ${className || ''}`}>
             <div className="flex flex-col h-full px-3">
-                <div className="h-20 flex items-center pl-2">
+                {/* Header Profile Section */}
+                <div className="h-20 flex items-center justify-between pl-2 pr-4">
                     <div
                         ref={profileRef as any}
-                        className="w-full flex items-center gap-x-4 cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition-colors relative"
+                        className="flex-1 flex items-center gap-x-4 cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition-colors relative"
                         onClick={() => setIsProfileActive(!isProfileActive)}
                     >
                         <Avatar className="w-10 h-10">
-                            {/* Use avatar_url if available, or generate a fallback based on name */}
                             <AvatarImage src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || 'User'}`} />
                             <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
                         </Avatar>
-                        <div>
-                            <span className="block text-gray-700 text-sm font-semibold">{user?.name || 'User'}</span>
-                            <span className="block mt-px text-gray-600 text-xs">{user?.email || 'user@example.com'}</span>
+                        <div className="flex-1 overflow-hidden">
+                            <span className="block text-gray-700 text-sm font-semibold truncate">{user?.name || 'User'}</span>
+                            <span className="block mt-px text-gray-600 text-xs truncate">{user?.email || 'user@example.com'}</span>
                         </div>
-
-                        {/* Dropdown Menu */}
-                        {isProfileActive && (
-                            <div
-                                id="profile-menu"
-                                role="menu"
-                                className="absolute z-50 left-0 top-full mt-1 w-full rounded-lg bg-white shadow-lg border text-sm text-gray-600"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <div className="p-2 text-left">
-                                    <span className="block text-gray-500/80 p-2">{user?.email || 'user@example.com'}</span>
-                                    <Link
-                                        href="/dashboard/account"
-                                        className="block w-full p-2 text-left rounded-md hover:bg-gray-50 active:bg-gray-100 duration-150"
-                                        role="menuitem"
-                                        onClick={() => setIsProfileActive(false)}
-                                    >
-                                        Add another account
-                                    </Link>
-
-                                    <div className="relative rounded-md hover:bg-gray-50 active:bg-gray-100 duration-150">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
-                                            className="w-4 h-4 absolute right-1 inset-y-0 my-auto pointer-events-none"
-                                            aria-hidden="true"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                        <select className="w-full cursor-pointer appearance-none bg-transparent p-2 outline-none" defaultValue="">
-                                            <option value="" disabled hidden>
-                                                Theme
-                                            </option>
-                                            <option>Dark</option>
-                                            <option>Light</option>
-                                        </select>
-                                    </div>
-
-                                    <button
-                                        className="block w-full p-2 text-left rounded-md hover:bg-gray-50 active:bg-gray-100 duration-150"
-                                        onClick={() => window.location.href = '/auth/login'}
-                                    >
-                                        Logout
-                                    </button>
-                                </div>
-                            </div>
-                        )}
                     </div>
+
+                    <NotificationBell />
+
+                    {/* Profile Dropdown */}
+                    {isProfileActive && (
+                        <div
+                            id="profile-menu"
+                            role="menu"
+                            className="absolute z-50 left-2 top-20 mt-1 w-[240px] rounded-lg bg-white shadow-lg border text-sm text-gray-600"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="p-2 text-left">
+                                <span className="block text-gray-500/80 p-2">{user?.email || 'user@example.com'}</span>
+                                <Link
+                                    href="/dashboard/account"
+                                    className="block w-full p-2 text-left rounded-md hover:bg-gray-50 active:bg-gray-100 duration-150"
+                                    role="menuitem"
+                                    onClick={() => setIsProfileActive(false)}
+                                >
+                                    My Account
+                                </Link>
+                                <button
+                                    className="block w-full p-2 text-left rounded-md hover:bg-gray-50 active:bg-gray-100 duration-150"
+                                    onClick={() => {
+                                        localStorage.removeItem('auth_token');
+                                        window.location.href = '/auth/login';
+                                    }}
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                <div className="overflow-auto">
-                    <ul className="text-sm font-medium flex-1">
+                {/* Navigation Links */}
+                <div className="overflow-auto flex-1 py-4">
+                    <ul className="text-sm font-medium space-y-2">
                         {navigation.map((item, idx) => (
                             <li key={idx}>
                                 <Link
@@ -229,25 +212,24 @@ export function Sidebar({ className }: { className?: string }) {
                                 </Link>
                             </li>
                         ))}
-
-
                     </ul>
+                </div>
 
-                    <div className="pt-2 mt-2 border-t">
-                        <ul className="text-sm font-medium">
-                            {navsFooter.map((item, idx) => (
-                                <li key={idx}>
-                                    <Link
-                                        href={item.href}
-                                        className="flex items-center gap-x-2 text-gray-600 p-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 duration-150"
-                                    >
-                                        <div className="text-gray-500">{item.icon}</div>
-                                        {item.name}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                {/* Footer Links */}
+                <div className="py-4 border-t mt-auto">
+                    <ul className="text-sm font-medium space-y-2">
+                        {navsFooter.map((item, idx) => (
+                            <li key={idx}>
+                                <Link
+                                    href={item.href}
+                                    className="flex items-center gap-x-2 text-gray-600 p-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 duration-150"
+                                >
+                                    <div className="text-gray-500">{item.icon}</div>
+                                    {item.name}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             </div>
         </nav>

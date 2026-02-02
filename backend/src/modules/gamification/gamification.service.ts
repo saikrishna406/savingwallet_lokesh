@@ -1,11 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../../supabase/supabase.service';
+import { NudgesService } from '../nudges/nudges.service';
 
 @Injectable()
 export class GamificationService {
     private readonly logger = new Logger(GamificationService.name);
 
-    constructor(private readonly supabaseService: SupabaseService) { }
+    constructor(
+        private readonly supabaseService: SupabaseService,
+        private readonly nudgesService: NudgesService
+    ) { }
 
     async getUserStatus(userId: string) {
         const supabase = this.supabaseService.getClient();
@@ -107,6 +111,11 @@ export class GamificationService {
             if (newStreak >= 3) {
                 await this.awardBadge(userId, 'savings-streak');
             }
+
+            // Check for '7 Day Streak' milestone (Just a nudge, no badge yet)
+            if (newStreak === 7) {
+                await this.nudgesService.createNudge(userId, "🔥 You're on fire! 7 days in a row!", 'milestone');
+            }
         }
 
         // Check for 'Early Bird' badge (First contribution)
@@ -123,7 +132,7 @@ export class GamificationService {
         // 1. Get Badge ID
         const { data: badge } = await supabase
             .from('badges')
-            .select('id')
+            .select('id, name')
             .eq('slug', badgeSlug)
             .single();
 
@@ -141,6 +150,8 @@ export class GamificationService {
 
         if (!error) {
             this.logger.log(`Awarded badge ${badgeSlug} to user ${userId}`);
+            // Send Nudge
+            await this.nudgesService.createNudge(userId, `🏆 Achievement Unlocked: ${badge.name}!`, 'achievement');
         }
     }
 }
