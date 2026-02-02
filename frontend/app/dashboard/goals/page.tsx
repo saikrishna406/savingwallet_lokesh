@@ -60,6 +60,16 @@ export default function GoalsPage() {
                 const diffTime = targetDate.getTime() - today.getTime()
                 const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
+                let status = g.status || 'active';
+                // Interpret 'completed' with 0 balance as 'Withdrawn' for UI
+                if (status === 'completed' && current <= 0) {
+                    status = 'Withdrawn';
+                } else if (status === 'completed') {
+                    status = 'Completed'; // Capitalize for consistency
+                } else if (status === 'active') {
+                    status = 'In Progress';
+                }
+
                 return {
                     id: g.id,
                     title: g.title || g.name || 'Untitled Goal',
@@ -67,7 +77,7 @@ export default function GoalsPage() {
                     current: current,
                     percent: percent,
                     icon: getIconForCategory(g.category),
-                    status: g.status || 'active',
+                    status: status,
                     daysLeft: daysLeft,
                     category: g.category || 'General'
                 }
@@ -143,9 +153,9 @@ export default function GoalsPage() {
                                             <p className="text-xs text-gray-500 mt-1">of ₹{goal.target.toLocaleString()} target</p>
                                         </div>
                                         <div className="text-right">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${goal.status === 'active' || goal.status === 'On Track'
-                                                ? 'bg-green-50 text-green-700'
-                                                : 'bg-amber-50 text-amber-700'
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${goal.status === 'Completed' || goal.status === 'Withdrawn'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-blue-50 text-blue-700'
                                                 }`}>
                                                 {goal.status}
                                             </span>
@@ -167,13 +177,17 @@ export default function GoalsPage() {
                                 {/* Footer Actions */}
                                 <div className="pt-4 border-t border-gray-50 flex gap-3">
                                     <div className="flex-1">
-                                        {goal.status === 'completed' ? (
+                                        {goal.status === 'Completed' ? (
                                             <WithdrawModal
                                                 goalId={goal.id}
                                                 goalTitle={goal.title}
                                                 currentAmount={goal.current}
                                                 onSuccess={fetchGoals}
                                             />
+                                        ) : goal.status === 'Withdrawn' ? (
+                                            <Button size="sm" variant="ghost" className="w-full bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-100" disabled>
+                                                Fully Withdrawn
+                                            </Button>
                                         ) : (
                                             <PaymentModal goalId={goal.id} onSuccess={fetchGoals} />
                                         )}

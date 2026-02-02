@@ -126,18 +126,15 @@ export class GoalsService {
             throw new InternalServerErrorException('Withdrawal amount exceeds goal balance');
         }
 
-        // 2. Withdraw Funds from Wallet (Creates Transaction + Updates Wallet Balance)
         // Source is 'WITHDRAW'
         await this.walletService.withdrawFunds(userId, amount, 'WITHDRAW', goalId);
 
         // 3. Update Goal Balance & Status
         const newGoalAmount = goal.current_amount - amount;
-        let newStatus = 'completed';
+        let newStatus = 'completed'; // Keep as completed even if balance is 0, since 'withdrawn' is not in DB enum
 
-        // If balance becomes 0 (or close to 0 due to float), mark as withdrawn
-        if (newGoalAmount <= 0) {
-            newStatus = 'withdrawn';
-        }
+        // Note: Ideally we would set status to 'withdrawn', but the DB constraint limits to 'active', 'completed', 'cancelled'.
+        // So we interpret (completed + 0 balance) as withdrawn in the UI.
 
         const { data: updatedGoal, error: updateError } = await supabase
             .from('goals')
@@ -152,8 +149,9 @@ export class GoalsService {
         if (updateError) {
             // CRITICAL: We deducted money but failed to update goal. 
             // Ideally we should rollback wallet transaction here.
-            console.error('CRITICAL: Money deducted but goal update failed!');
-            throw new InternalServerErrorException('Failed to update goal after withdrawal');
+            console.error('CRITICAL: Money deducted but goal update failed!', updateError);
+            console.error('Attempted update:', { goalId, newGoalAmount, newStatus });
+            throw new InternalServerErrorException(`Failed to update goal after withdrawal: ${updateError.message}`);
         }
 
         return updatedGoal;
