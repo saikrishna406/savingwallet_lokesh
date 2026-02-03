@@ -185,7 +185,7 @@ export function Sidebar({ className }: { className?: string }) {
                             <div className="p-2 text-left">
                                 <span className="block text-gray-500/80 p-2">{user?.email || 'user@example.com'}</span>
                                 <Link
-                                    href="/dashboard/account"
+                                    href="/dashboard/settings"
                                     className="block w-full p-2 text-left rounded-md hover:bg-gray-50 active:bg-gray-100 duration-150"
                                     role="menuitem"
                                     onClick={() => setIsProfileActive(false)}
